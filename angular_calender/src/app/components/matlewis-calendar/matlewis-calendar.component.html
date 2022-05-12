@@ -1,0 +1,75 @@
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      <h1 style="text-align: center;">Angular Calendar Example</h1>
+    </div>
+  </div>
+  <div class="row text-center">
+    <div class="col-md-6">
+      <div class="btn-group" style="float: left;">
+        <div class="btn btn-primary" mwlCalendarPreviousView [view]="view" [(viewDate)]="viewDate"
+          (viewDateChange)="closeOpenMonthViewDay()">
+          <!-- Previous -->
+          <i class="fa fa-solid fa fa-angle-left"></i>
+        </div>
+        <div class="btn btn-outline-secondary btn-primary" mwlCalendarToday [(viewDate)]="viewDate">
+          Today
+        </div>
+        <div class="btn btn-primary" mwlCalendarNextView [view]="view" [(viewDate)]="viewDate"
+          (viewDateChange)="closeOpenMonthViewDay()">
+          <!-- Next -->
+          <i class="fa fa-solid fa fa-angle-right"></i>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="margin-left: 5px; float: left;" (click)="toggleWeekView()">Toggle Weeks</button>
+      <button class="btn btn-primary" style="margin-left: 5px; float: left;" (click)="onChangeLanguage()">
+        Change Language
+      </button>
+    </div>
+    <div class="col-md-6" *ngIf="localePrefix === 'en'">
+      <h4 style="float: right;">{{ viewDate | calendarDate:(view + 'ViewTitle'):'en' }}</h4>
+    </div>
+    <div class="col-md-6" *ngIf="localePrefix === 'fr'">
+      <h4 style="float: right;">{{ viewDate | calendarDate:(view + 'ViewTitle'):'fr' }}</h4>
+    </div>
+  </div>
+
+  <br />
+  <ng-template #customCellTemplate let-day="day" let-locale="locale">
+    <div class="cal-cell-top">
+      <!-- <span class="cal-day-badge" *ngIf="day.badgeTotal > 0"
+        >{{ day.badgeTotal }}</span
+      > -->
+      <span>
+        <i class="fa-brands fa-pinterest-square" style="float: right;"></i>
+      </span>
+      <span class="cal-day-number"
+        >{{ day.date | calendarDate:'monthViewDayNumber':locale }}</span
+      >
+    </div>
+    <small style="margin: 5px"
+      >There are {{ day.events.length }} events on this day events on this day events on this day
+      </small>
+  </ng-template>
+  <div class="row">
+    <div class="col-md-12 col-sm-12 col-lg-12 col-xs-12">
+      <mwl-calendar-month-view
+      [viewDate]="viewDate"
+      [events]="events"
+      [refresh]="refresh"
+      [activeDayIsOpen]="activeDayIsOpen"
+      (eventClicked)="handleEvent('Clicked', $event.event)"
+      (eventTimesChanged)="eventTimesChanged($event)"
+      (beforeViewRender)="beforeMonthViewRender($event)"
+      [cellTemplate]="customCellTemplate"
+      [locale]="locale">
+      </mwl-calendar-month-view>
+
+      <!-- <mwl-calendar-month-view [viewDate]="viewDate" [events]="events"
+        [activeDayIsOpen]="activeDayIsOpen" (dayClicked)="dayClicked($event.day)" (eventClicked)="eventClicked($event.event)">
+      </mwl-calendar-month-view> -->
+    </div>
+  </div>
+</div>
