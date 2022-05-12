@@ -13,6 +13,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeEs from '@angular/common/locales/es';
+import { FormsModule } from '@angular/forms';
 
 registerLocaleData(localeFr);
 registerLocaleData(localeEs);
@@ -33,7 +34,7 @@ registerLocaleData(localeEs);
       provide: DateAdapter,
       useFactory: adapterFactory,
     }),
-
+    FormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

@@ -1,12 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { HttpParams } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChange, SimpleChanges, ViewChild } from '@angular/core';
 import { CalendarDateFormatter, CalendarEvent, CalendarEventAction, CalendarEventTimesChangedEvent, CalendarMonthViewBeforeRenderEvent, CalendarUtils, CalendarView, DateAdapter, DAYS_OF_WEEK } from 'angular-calendar';
 import { WeekViewHour, WeekViewHourSegment, GetMonthViewArgs, MonthView, getMonthView, GetWeekViewArgs, WeekView } from 'calendar-utils';
 import { addDays, addHours, endOfDay, endOfMonth, endOfWeek, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
 import { el } from 'date-fns/locale';
 import { Subject } from 'rxjs';
 import { Schedule } from 'src/app/models/schedule.model';
+import { SwitchView } from 'src/app/models/switchview.model';
 import { ApiHttpService } from 'src/app/services/api-http.service';
 import { CustomDateFormatter } from './custom-date-formatter.provider';
 
@@ -82,8 +83,8 @@ export class MatlewisCalendarComponent extends CalendarUtils implements OnInit {
   refresh = new Subject<void>();
 
   // override getMonthView(args: GetMonthViewArgs): MonthView {
-  //   console.log(args);
   //   let weekNumber = this.getWeekOfMonth(args.viewDate.toLocaleDateString('en-US'));
+  //   let isTwoWeekView = localStorage.getItem('isTwoWeek');
   //   // console.log(weekNumber);
   //   // args.viewStart = startOfWeek(startOfMonth(args.viewDate));
   //   // args.viewDate = new Date('2022-05-29');
@@ -91,37 +92,66 @@ export class MatlewisCalendarComponent extends CalendarUtils implements OnInit {
   //   // if(weekNumber <= 3){
   //   //   args.viewEnd = addDays(args.viewStart, this.numberOfDays);
   //   // }
-  //   alert(this.toggleWeeks);
+  //   // alert(this.toggleWeeks);
   //   console.log(this.toggleWeeks)
   //   // alert(this.testString);
-  //   if(this.toggleWeeks){
-  //     console.log('I am in if condition');
+  //   if(isTwoWeekView === 'true'){
   //     args.viewEnd = endOfWeek(endOfMonth(args.viewDate));
   //   }
   //   else{
-  //     console.log('I am in else condition');
   //     args.viewEnd = addDays(args.viewStart, this.numberOfDays);
   //   }
   //   // console.log('--------------------');
   //   var mnthView = getMonthView(this.dateAdapter, args);
   //   // alert(this.toggleWeeks);
-  //   console.log(mnthView);
+  //   // console.log(mnthView);
   //   return mnthView;
   // }
 
   //2nd way -
-  // override getMonthView(args: GetMonthViewArgs): MonthView {
-  //   // console.log(args);
-  //   let weekNumber = this.getWeekOfMonth(args.viewDate.toLocaleDateString('en-US'));
-  //   // console.log(weekNumber);
-  //   args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-  //   // args.viewDate = new Date('2022-05-29');
-  //   // args.viewStart = startOfWeek(args.viewDate);
-  //   args.viewEnd = endOfWeek(endOfMonth(args.viewDate));
-  //   var mnthView = getMonthView(this.dateAdapter, args);
-  //   console.log(mnthView);
-  //   return mnthView;
-  // }
+  override getMonthView(args: GetMonthViewArgs): MonthView {
+    console.log('I am in');
+    // args.viewDate = new Date('2022-05-17');
+    // console.log(args);
+    let weekNumber = this.getWeekOfMonth(args.viewDate.toLocaleDateString('en-US'));
+    let isTwoWeekView = localStorage.getItem('isTwoWeek');
+    // console.log(weekNumber);
+    // args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+    // args.viewDate = new Date('2022-05-29');
+
+    //#region logic for view start
+    if((weekNumber === 1 || weekNumber === 2) && isTwoWeekView === 'false'){
+      args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+      args.viewEnd = addDays(args.viewStart, 13);
+    }
+    else if ((weekNumber === 3 || weekNumber === 4) && isTwoWeekView === 'false') {
+      args.viewStart = startOfWeek(args.viewDate);
+      args.viewEnd = addDays(args.viewStart, 13);
+    }
+    else if(isTwoWeekView === 'true'){
+      args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+      args.viewEnd = addDays(args.viewStart, 27);
+    }
+    //#endregion
+    // args.viewStart = startOfWeek(args.viewDate);
+    // if(weekNumber <= 3){
+    //   args.viewEnd = addDays(args.viewStart, this.numberOfDays);
+    // }
+    // alert(this.toggleWeeks);
+    // console.log(this.toggleWeeks)
+    // alert(this.testString);
+    // if(isTwoWeekView === 'true'){
+    //   args.viewEnd = endOfWeek(endOfMonth(args.viewDate));
+    // }
+    // else{
+    //   args.viewEnd = addDays(args.viewStart, this.numberOfDays);
+    // }
+    // console.log('--------------------');
+    var mnthView = getMonthView(this.dateAdapter, args);
+    // alert(this.toggleWeeks);
+    console.log(mnthView);
+    return mnthView;
+  }
 
   getWeekOfMonth(dateOfMonth: string): number {
     var d = new Date(dateOfMonth);
@@ -130,7 +160,6 @@ export class MatlewisCalendarComponent extends CalendarUtils implements OnInit {
     const weekOfMonth = Math.ceil((date - 1 - day) / 7) + 1;
     return weekOfMonth;
   }
-
 
   constructor(private http: ApiHttpService, private dateAdaptor: DateAdapter) {
     super(dateAdaptor);
@@ -146,23 +175,29 @@ export class MatlewisCalendarComponent extends CalendarUtils implements OnInit {
   }
 
   toggleWeekView(){
+    // this.someInput = !this.someInput;
     this.toggleWeeks = !this.toggleWeeks;
-    this.testString = 'Something added';
-    this.args1.viewDate = new Date('2022-06-01');
+    localStorage.setItem('isTwoWeek', String(this.toggleWeeks));
+    // this.testString = 'Something added';
+    this.args1.viewDate = new Date();
     // this.getMonthView(this.args1);
     // this.viewDate = this.args1.viewDate;
-    console.log('77777777');
+    // this.changeViewModeValue();
     this.viewDate = this.args1.viewDate;
     // this.refresh.next();
   }
 
   //#region Properties
+  switchViewObj: SwitchView = new SwitchView();
+  changes!: SimpleChange;
+  @Input()
+  someInput!: boolean;
   isCalendarEnabled: boolean = false;
   isCreateModalEnabled: boolean = true;
   viewDate: Date = new Date();
   view: CalendarView = CalendarView.Month;
   scheduleInfo: Schedule[] = [];
-  toggleWeeks: boolean = true;
+  toggleWeeks: boolean = false;
   testString: string = '';
   numberOfDays: number = 13;
   locale: string = 'en_US';
@@ -475,6 +510,32 @@ export class MatlewisCalendarComponent extends CalendarUtils implements OnInit {
       next: response => {
         this.scheduleInfo = response;
         // console.log(this.scheduleInfo);
+      }
+    });
+  }
+
+  // changeViewModeValue(){
+  //   let switchViewResp = this.GetViewModeValue(1);
+  //   let obj = new SwitchView();
+  //   obj.isChange = !switchViewResp.isChange
+  //   obj.id = switchViewResp.id;
+  //   console.log(switchViewResp);
+  //   console.log(obj);
+  //   this.http.put(`http://localhost:8000/switchview/${obj.id}`, obj).subscribe({
+  //     next: response => {
+  //       //storing updated response
+  //       this.switchViewObj = response;
+  //     }
+  //   });
+  // }
+
+  GetViewModeValue(id: number) {
+    let queryParams = new HttpParams();
+    queryParams = queryParams.append("id", 1);
+    this.http.get(`http://localhost:8000/switchview`, { params: queryParams })
+    .subscribe({
+      next: response => {
+        this.switchViewObj = response;
       }
     });
   }
