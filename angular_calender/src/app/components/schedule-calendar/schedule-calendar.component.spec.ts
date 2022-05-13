@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { MatlewisCalendarComponent } from './matlewis-calendar.component';
+import { MatlewisCalendarComponent } from './schedule-calendar.component';
 
 describe('MatlewisCalendarComponent', () => {
   let component: MatlewisCalendarComponent;

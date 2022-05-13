@@ -5,10 +5,9 @@ import { ScheduleModule } from '@syncfusion/ej2-angular-schedule';
 import { AppComponent } from './app.component';
 import { CalenderExampleComponent } from './components/calender-example/calender-example.component';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
-import { MatlewisCalendarComponent } from './components/matlewis-calendar/matlewis-calendar.component';
+import { ScheduleCalendarComponent } from './components/schedule-calendar/schedule-calendar.component';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AsyncEventCalendarComponent } from './components/async-event-calendar/async-event-calendar.component';
 import { HttpClientModule } from '@angular/common/http';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
@@ -22,8 +21,7 @@ registerLocaleData(localeEs);
   declarations: [
     AppComponent,
     CalenderExampleComponent,
-    MatlewisCalendarComponent,
-    AsyncEventCalendarComponent
+    ScheduleCalendarComponent
   ],
   imports: [
     BrowserModule,
