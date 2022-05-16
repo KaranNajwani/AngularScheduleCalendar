@@ -21,7 +21,7 @@ interface Film {
 
 @Component({
   selector: 'app-schedule-calendar',
-  //changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './schedule-calendar.component.html',
   styleUrls: ['./schedule-calendar.component.css']
   ,
