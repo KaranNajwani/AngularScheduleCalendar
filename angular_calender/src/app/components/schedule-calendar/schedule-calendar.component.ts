@@ -127,7 +127,7 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
 
   ngOnInit() {
     // this.hideCalCellRows();
-     this.GetScheduleData();
+     this.GetScheduleData(0);
   }
   //#endregion
 
@@ -371,7 +371,8 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
     }
   }
 
-  closeOpenMonthViewDay() {
+  closeOpenMonthViewDay(index: number) {
+    this.GetScheduleData(index);
     // this.activeDayIsOpen = false;
   }
 
@@ -421,8 +422,8 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
 
   
 
-  GetScheduleData() {
-    this.scheuleService.getScheduleData().subscribe(
+  GetScheduleData(index:number) {
+    this.scheuleService.getScheduleData(index).subscribe(
       (response)=> {          
         this.scheuleService.startDate = new Date(response.startDate);       
         this.scheuleService.endDate = new Date(response.endDate);    
