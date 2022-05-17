@@ -10,8 +10,7 @@
     <div class="col-md-6">
       <div class="btn-group" style="float: left;">
         <div class="btn btn-primary" mwlCalendarPreviousView [view]="view" [(viewDate)]="viewDate"
-          (viewDateChange)="closeOpenMonthViewDay()"
-          (click)="GetScheduleData()">
+          (viewDateChange)="closeOpenMonthViewDay(0)">
           <!-- Previous -->
           <i class="fa fa-solid fa fa-angle-left"></i>
         </div>
@@ -19,9 +18,7 @@
           Today
         </div>
         <div class="btn btn-primary" mwlCalendarNextView [view]="view" [(viewDate)]="viewDate"
-          (viewDateChange)="closeOpenMonthViewDay()"
-          (click)="GetScheduleData()"
-          >
+          (viewDateChange)="closeOpenMonthViewDay(1)">
           <!-- Next -->
           <i class="fa fa-solid fa fa-angle-right"></i>
         </div>
