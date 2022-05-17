@@ -3,7 +3,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { ScheduleModule } from '@syncfusion/ej2-angular-schedule';
 
 import { AppComponent } from './app.component';
-import { CalenderExampleComponent } from './components/calender-example/calender-example.component';
 import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 import { ScheduleCalendarComponent } from './components/schedule-calendar/schedule-calendar.component';
 import { CalendarModule, DateAdapter } from 'angular-calendar';
@@ -14,7 +13,8 @@ import localeFr from '@angular/common/locales/fr';
 import localeEs from '@angular/common/locales/es';
 import { FormsModule } from '@angular/forms';
 import {ScheduleService} from './components/schedule-calendar/schedule-calendar.service';
-import { ScheduleDataService } from './services/schedule-data.service';
+import { StartdatePipe } from './pipes/startdate.pipe';
+import { CalendarDayComponent } from './components/calendar-day/calendar-day.component';
 
 registerLocaleData(localeFr);
 registerLocaleData(localeEs);
@@ -22,8 +22,9 @@ registerLocaleData(localeEs);
 @NgModule({
   declarations: [
     AppComponent,
-    CalenderExampleComponent,
-    ScheduleCalendarComponent
+    ScheduleCalendarComponent,
+    StartdatePipe,
+    CalendarDayComponent
   ],
   imports: [
     BrowserModule,
@@ -36,7 +37,7 @@ registerLocaleData(localeEs);
     }),
     FormsModule
   ],
-  providers: [ScheduleService, ScheduleDataService],
+  providers: [ScheduleService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

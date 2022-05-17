@@ -1,0 +1,36 @@
+.cal-month-view .bg-pink,
+.cal-week-view .cal-day-columns .bg-pink,
+.cal-day-view .bg-pink {
+  background-color: hotpink !important;
+}
+
+
+.cal-day-number {
+  font-size: 1.2em;
+  font-weight: 400;
+  opacity: 0.5 !important;
+  margin-top: 15px;
+  /* margin-right: 75px !important; */
+  margin-right: 36% !important;
+  float: right;
+  margin-bottom: 10px;
+  font-weight: bold;
+  /* color: black !important; */
+}
+
+.cal-month-view .cal-day-cell.cal-today .cal-day-number {
+  font-size: 1.9em;
+  margin-right: 70px !important;
+}
+
+.circle {
+  border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    padding: 5px;
+    background: #fff;
+    color: #000;
+    text-align: center;
+    background: #007bff;
+    color: white;
+}
