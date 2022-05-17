@@ -1,0 +1,14 @@
+<div class="cal-cell-top">
+  <span>
+    <i class="fa-brands fa-pinterest-square" style="float: right;"></i>
+  </span>
+  <span *ngIf="dayNumber" class="cal-day-number">{{ dayNumber | calendarDate:'monthViewDayNumber':locale}}</span>
+</div>
+<small *ngIf="day.shifts.length !== 0"
+  style="margin: 3px; text-align: center;"><strong>{{day.shifts[0].portions[0]?.startTime}} -
+    {{day.shifts[0].portions[0]?.endTime}}</strong>
+</small>
+<small *ngIf="day.shifts.length !== 0" style="margin: 3px; text-align: center;">{{day.shifts[0].portions[0]?.payCode}}
+</small>
+<small *ngIf="day.shifts.length !== 0" style="margin: 3px; text-align: center;">{{day.shifts[0].portions[0]?.deptCode}}
+</small>
