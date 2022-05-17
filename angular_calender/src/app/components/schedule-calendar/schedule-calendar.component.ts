@@ -1,16 +1,16 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChange, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, Input, OnChanges, OnInit, SimpleChange, SimpleChanges, ViewChild } from '@angular/core';
 import { CalendarDateFormatter, CalendarEvent, CalendarEventAction, CalendarEventTimesChangedEvent, CalendarMonthViewBeforeRenderEvent, CalendarUtils, CalendarView, DateAdapter, DAYS_OF_WEEK } from 'angular-calendar';
 import { WeekViewHour, WeekViewHourSegment, GetMonthViewArgs, MonthView, getMonthView, GetWeekViewArgs, WeekView } from 'calendar-utils';
 import { addDays, addHours, endOfDay, endOfMonth, endOfWeek, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
-import { el } from 'date-fns/locale';
-import { lastValueFrom, Subject } from 'rxjs';
+import { lastValueFrom, Observable, Subject } from 'rxjs';
 import { Schedule } from 'src/app/models/schedule.model';
 import { SchedulePayPeriod } from 'src/app/models/schedulepayperiod.model';
 import { SwitchView } from 'src/app/models/switchview.model';
 import { ApiHttpClientService } from 'src/app/services/api-http-client.service';
 import { ApiHttpService } from 'src/app/services/api-http.service';
+import { ScheduleService } from 'src/app/services/schedule.service';
 import { CustomDateFormatter } from './custom-date-formatter.provider';
 
 interface Film {
@@ -21,7 +21,7 @@ interface Film {
 
 @Component({
   selector: 'app-schedule-calendar',
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './schedule-calendar.component.html',
   styleUrls: ['./schedule-calendar.component.css']
   ,
@@ -36,9 +36,10 @@ interface Film {
     }
   ]
 })
-export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
+export class ScheduleCalendarComponent extends CalendarUtils implements OnInit, AfterViewInit {
 
   //#region Properties
+  schedulePay: Array<SchedulePayPeriod> = new Array<SchedulePayPeriod>();
   datepipe: DatePipe = new DatePipe('yyyy-MM-dd');
   refresh = new Subject<void>();
   switchViewObj: SwitchView = new SwitchView();
@@ -57,6 +58,8 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
   localePrefix: string = 'en';
   weekStartsOn: number = DAYS_OF_WEEK.SUNDAY;
   weekendDays: number[] = [DAYS_OF_WEEK.SATURDAY, DAYS_OF_WEEK.SUNDAY];
+  startDate!: Date;
+  endDate!: Date;
   // weekendDays: number[] = [];
 
   args1: GetMonthViewArgs = {
@@ -114,13 +117,40 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
   //#endregion
 
   //#region Life cycle hooks and constructor
-  constructor(private http: ApiHttpService, private dateAdaptor: DateAdapter, private httpClient: ApiHttpClientService, private httpPromiseClient: HttpClient) {
+  constructor(private http: ApiHttpService, private dateAdaptor: DateAdapter, private httpClient: ApiHttpClientService, private httpPromiseClient: HttpClient, private scheduleService: ScheduleService) {
     super(dateAdaptor);
   }
 
+  ngAfterViewInit(): void {
+
+  }
+
   ngOnInit() {
-    // this.hideCalCellRows();
-    // this.GetScheduleData();
+    console.log("ngOnInit")
+    // this.GetSchedulePayPeriod();
+    // this.scheduleService.start.subscribe((data)=>{
+    //   if(data){
+    //     console.log('test' + data);
+    //     this.startDate = new Date(data);
+    //   }
+    // })
+
+    // this.scheduleService.end.subscribe((data) => {
+    //   if(data){
+    //     console.log('endDate'+data);
+    //     this.endDate = new Date(data);
+    //   }
+    // })
+
+    // this.GetSchedulePayPeriod().subscribe(resp => {
+    //   this.schedulePay = resp;
+    //   this.startDate = new Date(this.schedulePay[0].startDate);
+    //   this.endDate = new Date(this.schedulePay[0].endDate);
+    //   console.log('OnInit');
+    //   console.log(this.startDate);
+    //   console.log(this.endDate);
+    // });
+
   }
   //#endregion
 
@@ -133,57 +163,100 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
     throw new Error('Method not implemented.');
   }
 
-  override getMonthView(args: GetMonthViewArgs): MonthView {
-    // args.viewDate = new Date('2022-05-17');
-    const activeMonth = new Date().getMonth()+1;
-    const viewDateMonth = args.viewDate.getMonth()+1;
-    let isTwoWeekView = localStorage.getItem('isTwoWeek');
-    let mnthView: MonthView;
-    if(activeMonth === viewDateMonth){
-      let weekNumber = this.getWeekOfMonth(args.viewDate.toLocaleDateString('en-US'));
-      // console.log(weekNumber);
-      // args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-      // args.viewDate = new Date('2022-05-29');
-
-      //#region logic for view start
-      if((weekNumber === 1 || weekNumber === 2) && isTwoWeekView === 'false'){
-        args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-        args.viewEnd = addDays(args.viewStart, 13);
-      }
-      else if ((weekNumber === 3 || weekNumber === 4) && isTwoWeekView === 'false') {
-        args.viewStart = startOfWeek(args.viewDate);
-        args.viewEnd = addDays(args.viewStart, 13);
-      }
-      else if(isTwoWeekView === 'true'){
-        args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-        args.viewEnd = addDays(args.viewStart, 27);
-      }
-      //#endregion
-      mnthView = getMonthView(this.dateAdapter, args);
-      // alert(this.toggleWeeks);
-    }
-    else{
-      args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-      args.viewEnd = isTwoWeekView === 'false' ? args.viewEnd = addDays(args.viewStart, 13) : addDays(args.viewStart, 27);
-      mnthView = getMonthView(this.dateAdapter, args);
-    }
-    return mnthView;
-  }
-
   // override getMonthView(args: GetMonthViewArgs): MonthView {
-  //   let payPeriod: SchedulePayPeriod = new SchedulePayPeriod();
-  //   const schedulePayPeriod$ = this.httpPromiseClient.get<SchedulePayPeriod>(`http://localhost:6200/schedulepayperiod`);
-  //   lastValueFrom(schedulePayPeriod$).then(function (result) {
-  //     payPeriod = result;
-  //   });
-  //   console.log('--------------');
-  //   console.log(payPeriod);
-  //   args.viewStart = new Date(payPeriod.startDate);
-  //   args.viewEnd = new Date(payPeriod.endDate);
+  //   // this.httpPromiseClient.get(`http://localhost:6200/schedulepayperiod`).subscribe({
+  //   //   next: response => {
+
+  //   //     console.log(this.scheduleInfo);
+  //   //   }
+  //   // })
+  //   // args.viewDate = new Date('2022-05-17');
+  //   const activeMonth = new Date().getMonth()+1;
+  //   const viewDateMonth = args.viewDate.getMonth()+1;
+  //   let isTwoWeekView = localStorage.getItem('isTwoWeek');
   //   let mnthView: MonthView;
-  //   mnthView = getMonthView(this.dateAdapter, args);
+  //   if(activeMonth === viewDateMonth){
+  //     let weekNumber = this.getWeekOfMonth(args.viewDate.toLocaleDateString('en-US'));
+  //     // console.log(weekNumber);
+  //     // args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+  //     // args.viewDate = new Date('2022-05-29');
+
+  //     //#region logic for view start
+  //     if((weekNumber === 1 || weekNumber === 2) && isTwoWeekView === 'false'){
+  //       args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+  //       args.viewEnd = addDays(args.viewStart, 13);
+  //     }
+  //     else if ((weekNumber === 3 || weekNumber === 4) && isTwoWeekView === 'false') {
+  //       args.viewStart = startOfWeek(args.viewDate);
+  //       args.viewEnd = addDays(args.viewStart, 13);
+  //     }
+  //     else if(isTwoWeekView === 'true'){
+  //       args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+  //       args.viewEnd = addDays(args.viewStart, 27);
+  //     }
+  //     //#endregion
+  //     mnthView = getMonthView(this.dateAdapter, args);
+  //     // alert(this.toggleWeeks);
+  //   }
+  //   else{
+  //     args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+  //     args.viewEnd = isTwoWeekView === 'false' ? args.viewEnd = addDays(args.viewStart, 13) : addDays(args.viewStart, 27);
+  //     mnthView = getMonthView(this.dateAdapter, args);
+  //   }
   //   return mnthView;
   // }
+
+  override getMonthView(args: GetMonthViewArgs): MonthView {
+    let mnthView: MonthView;
+
+    console.log('getMonthView');
+
+    // const response = this.getMonthTestView(args);
+    // setTimeout(() => {
+    //   this.schedulePay = response;
+    //   args.viewStart = new Date(this.schedulePay[0].startDate);
+    //   args.viewEnd = new Date(this.schedulePay[0].endDate);
+    //   mnthView = getMonthView(this.dateAdapter, args);
+    //   return mnthView;
+    // },2000)
+
+
+    // this.scheduleService.start.subscribe((data)=>{
+    //   if(data){
+    //     // console.log('test' + data);
+    //     args.viewStart = new Date(data);
+    //   }
+    // })
+
+    // this.scheduleService.end.subscribe((data) => {
+    //   if(data){
+    //     // console.log('endDate'+data);
+    //     args.viewEnd = new Date(data);
+    //   }
+    // })
+
+    // console.log('viewStart '+args.viewStart);
+    // console.log('viewEnd '+args.viewEnd);
+    args.viewDate = new Date('2022-06-26');
+    args.viewEnd = new Date('2022-07-23');
+    mnthView = getMonthView(this.dateAdapter, args);
+    return mnthView;
+
+  }
+
+  getMonthTestView(args: GetMonthViewArgs): any {
+    let mnthView: MonthView;
+    this.GetSchedulePayPeriod().subscribe(resp => {
+      // this.schedulePay = resp;
+      // args.viewStart = new Date(this.schedulePay[0].startDate);
+      // args.viewEnd = new Date(this.schedulePay[0].endDate);
+      // console.log('getMonth')
+      // console.log(args.viewStart);
+      // console.log(args.viewEnd);
+      // mnthView = getMonthView(this.dateAdapter, args);
+      return resp;
+    });
+  }
 
   getWeekOfMonth(dateOfMonth: string): number {
     var d = new Date(dateOfMonth);
@@ -199,55 +272,41 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
     console.log(calDays);
   }
 
+  public GetSchedulePayPeriod() {
+    return this.http.get(`http://localhost:6200/schedulepayperiod`);
+    // .subscribe(response => {
+
+    //   // next: response => {
+    //     this.schedulePay = response;
+    //     this.scheduleService.setStartDate(new Date(this.schedulePay[0].startDate));
+    //     this.scheduleService.setEndDate(new Date(this.schedulePay[0].endDate));
+    //     this.startDate = new Date(this.schedulePay[0].startDate);
+    //     this.endDate = new Date(this.schedulePay[0].endDate);
+    //   // }
+    // });
+
+    // const schedulePeriod$ = this.httpPromiseClient.get(`http://localhost:6200/schedulepayperiod`);
+    // await lastValueFrom(schedulePeriod$).then((response) => {
+    //   let singleSchedule = new SchedulePayPeriod();
+    //   singleSchedule = response as SchedulePayPeriod;
+    //   console.log('singleSchedule');
+    //   console.log(singleSchedule);
+    //   this.schedulePay.push(singleSchedule);
+    //   this.scheduleService.setStartDate(new Date(this.schedulePay[0].startDate));
+    //   this.scheduleService.setEndDate(new Date(this.schedulePay[0].endDate));
+    //   this.startDate = new Date(this.schedulePay[0].startDate);
+    //   this.endDate = new Date(this.schedulePay[0].endDate);
+    // })
+  }
+
   toggleWeekView(){
     this.toggleWeeks = !this.toggleWeeks;
     localStorage.setItem('isTwoWeek', String(this.toggleWeeks));
     this.args1.viewDate = new Date();
-    // this.getMonthView(this.args1);
-    this.viewDate = this.args1.viewDate;
+    this.getMonthView(this.args1);
+    // this.viewDate = this.args1.viewDate;
     // this.refresh.next();
   }
-
-  // events: CalendarEvent[] = [
-  //   {
-  //     start: subDays(startOfDay(new Date()), 1),
-  //     end: addDays(new Date(), 1),
-  //     title: 'A 3 day event',
-  //     color: this.colors.red,
-  //     actions: this.actions,
-  //     allDay: true,
-  //     resizable: {
-  //       beforeStart: true,
-  //       afterEnd: true,
-  //     },
-  //     draggable: false,
-  //   },
-  //   {
-  //     start: startOfDay(new Date()),
-  //     title: 'An event with no end date',
-  //     color: this.colors.yellow,
-  //     actions: this.actions,
-  //   },
-  //   {
-  //     start: subDays(endOfMonth(new Date()), 3),
-  //     end: addDays(endOfMonth(new Date()), 3),
-  //     title: 'A long event that spans 2 months',
-  //     color: this.colors.blue,
-  //     allDay: true,
-  //   },
-  //   {
-  //     start: addHours(startOfDay(new Date()), 2),
-  //     end: addHours(new Date(), 2),
-  //     title: 'A draggable and resizable event',
-  //     color: this.colors.yellow,
-  //     actions: this.actions,
-  //     resizable: {
-  //       beforeStart: true,
-  //       afterEnd: true,
-  //     },
-  //     draggable: false,
-  //   },
-  // ];
 
   beforeMonthViewRender(renderEvent: CalendarMonthViewBeforeRenderEvent): void {
     renderEvent.body.forEach((day) => {
@@ -276,39 +335,6 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
         break;
     }
     return color;
-  }
-
-  //open appointment modal to create
-  openEvent(date: Date, calendarView: CalendarView) {
-    // const dialogRef = this.dialog.open(DialogAppointmentComponent, {
-    //   maxWidth: '650px',
-    //   data: {
-    //     appDate: date,
-    //     action: 'CREATE',
-    //     physicianName: this.physicianName,
-    //     physicianId: this.physicianId,
-    //     calendarView: calendarView,
-    //     userRole: this.userRole
-    //   }
-    // });
-
-    // dialogRef.afterClosed().subscribe(result => {
-    //   console.log(`Dialog result: ${result}`);
-    //   if (this.physicianId !== undefined) {
-    //     this.loadAppointments(this.physicianId);
-    //   }
-    //   else if(this.userRole === UserRoles.Patient && this.physicianId === undefined){
-    //     this.loadPatientAppointments(this.userID.toString());
-    //   }
-    // });
-  }
-
-  //hours clicked
-  hourSegmentClicked({ date, event }: { date: Date, event: Event[] }): void {
-    console.log("hour clicked " + date.getHours());
-    if (this.isCreateModalEnabled) {
-      this.openEvent(date, CalendarView.Week);
-    }
   }
 
   eventTimesChanged({
@@ -421,17 +447,14 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
     .subscribe({
       next: response => {
         this.switchViewObj = response;
+
       }
     });
   }
 
-  GetSchedulePayPeriod() {
-    let payPeriod: SchedulePayPeriod = new SchedulePayPeriod();
-    const schedulePayPeriod$ = this.httpPromiseClient.get<SchedulePayPeriod>(`http://localhost:6200/schedulepayperiod`);
-    lastValueFrom(schedulePayPeriod$).then(function(result) {
-      payPeriod = result;
-    });
-  }
+  // GetSchedulePayPeriod() {
+  //   this.httpPromiseClient.get(`http://localhost:6200/schedulepayperiod`)
+  // }
 
   onChangeLanguage() {
     if (this.locale === 'fr_CA') {
