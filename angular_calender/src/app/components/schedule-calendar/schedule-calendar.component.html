@@ -10,7 +10,8 @@
     <div class="col-md-6">
       <div class="btn-group" style="float: left;">
         <div class="btn btn-primary" mwlCalendarPreviousView [view]="view" [(viewDate)]="viewDate"
-          (viewDateChange)="closeOpenMonthViewDay()">
+          (viewDateChange)="closeOpenMonthViewDay()"
+          (click)="GetScheduleData()">
           <!-- Previous -->
           <i class="fa fa-solid fa fa-angle-left"></i>
         </div>
@@ -18,7 +19,9 @@
           Today
         </div>
         <div class="btn btn-primary" mwlCalendarNextView [view]="view" [(viewDate)]="viewDate"
-          (viewDateChange)="closeOpenMonthViewDay()">
+          (viewDateChange)="closeOpenMonthViewDay()"
+          (click)="GetScheduleData()"
+          >
           <!-- Next -->
           <i class="fa fa-solid fa fa-angle-right"></i>
         </div>
@@ -60,6 +63,7 @@
       [refresh]="refresh"
       [cellTemplate]="customCellTemplate"
       [locale]="locale"
+      (beforeViewRender)="beforeMonthViewRender($event)"
     >
       </mwl-calendar-month-view>
 

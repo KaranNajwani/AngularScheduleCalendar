@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Component, ElementRef, Input, OnChanges, OnInit, SimpleChange, SimpleChanges, ViewChild } from '@angular/core';
+import { ThisReceiver } from '@angular/compiler';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, ElementRef, Input, OnChanges, OnInit, SimpleChange, SimpleChanges, ViewChild } from '@angular/core';
 import { CalendarDateFormatter, CalendarEvent, CalendarEventAction, CalendarEventTimesChangedEvent, CalendarMonthViewBeforeRenderEvent, CalendarUtils, CalendarView, DateAdapter, DAYS_OF_WEEK } from 'angular-calendar';
 import { WeekViewHour, WeekViewHourSegment, GetMonthViewArgs, MonthView, getMonthView, GetWeekViewArgs, WeekView } from 'calendar-utils';
 import { addDays, addHours, endOfDay, endOfMonth, endOfWeek, isSameDay, isSameMonth, startOfDay, startOfMonth, startOfWeek, subDays } from 'date-fns';
@@ -12,6 +13,7 @@ import { SwitchView } from 'src/app/models/switchview.model';
 import { ApiHttpClientService } from 'src/app/services/api-http-client.service';
 import { ApiHttpService } from 'src/app/services/api-http.service';
 import { CustomDateFormatter } from './custom-date-formatter.provider';
+import {ScheduleService} from './schedule-calendar.service';
 
 interface Film {
   id: number;
@@ -21,7 +23,7 @@ interface Film {
 
 @Component({
   selector: 'app-schedule-calendar',
-  // changeDetection: ChangeDetectionStrategy.OnPush,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './schedule-calendar.component.html',
   styleUrls: ['./schedule-calendar.component.css']
   ,
@@ -33,7 +35,8 @@ interface Film {
     {
       provide: CalendarDateFormatter,
       useClass: CustomDateFormatter
-    }
+    },
+    ScheduleService
   ]
 })
 export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
@@ -43,8 +46,7 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
   refresh = new Subject<void>();
   switchViewObj: SwitchView = new SwitchView();
   changes!: SimpleChange;
-  @Input()
-  someInput!: boolean;
+  @Input() someInput!: boolean;
   isCalendarEnabled: boolean = false;
   isCreateModalEnabled: boolean = true;
   viewDate: Date = new Date();
@@ -114,13 +116,18 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
   //#endregion
 
   //#region Life cycle hooks and constructor
-  constructor(private http: ApiHttpService, private dateAdaptor: DateAdapter, private httpClient: ApiHttpClientService, private httpPromiseClient: HttpClient) {
+  constructor(private http: ApiHttpService, private dateAdaptor: DateAdapter, 
+    private httpClient: ApiHttpClientService, 
+    private httpPromiseClient: HttpClient,
+    private scheuleService: ScheduleService,
+    private cd: ChangeDetectorRef
+    ) {
     super(dateAdaptor);
   }
 
   ngOnInit() {
     // this.hideCalCellRows();
-    // this.GetScheduleData();
+     this.GetScheduleData();
   }
   //#endregion
 
@@ -133,42 +140,49 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
     throw new Error('Method not implemented.');
   }
 
-  override getMonthView(args: GetMonthViewArgs): MonthView {
-    // args.viewDate = new Date('2022-05-17');
-    const activeMonth = new Date().getMonth()+1;
-    const viewDateMonth = args.viewDate.getMonth()+1;
-    let isTwoWeekView = localStorage.getItem('isTwoWeek');
-    let mnthView: MonthView;
-    if(activeMonth === viewDateMonth){
-      let weekNumber = this.getWeekOfMonth(args.viewDate.toLocaleDateString('en-US'));
-      // console.log(weekNumber);
-      // args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-      // args.viewDate = new Date('2022-05-29');
+   override getMonthView(args: GetMonthViewArgs): MonthView {
+  //   // args.viewDate = new Date('2022-05-17');
+  //   // const activeMonth = new Date().getMonth()+1;
+  //   // const viewDateMonth = args.viewDate.getMonth()+1;
+  //   // let isTwoWeekView = localStorage.getItem('isTwoWeek');
+  //    let mnthView: MonthView;
+    // if(activeMonth === viewDateMonth){
+    //   let weekNumber = this.getWeekOfMonth(args.viewDate.toLocaleDateString('en-US'));
+    //   // console.log(weekNumber);
+    //   // args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+    //   // args.viewDate = new Date('2022-05-29');
 
-      //#region logic for view start
-      if((weekNumber === 1 || weekNumber === 2) && isTwoWeekView === 'false'){
-        args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-        args.viewEnd = addDays(args.viewStart, 13);
-      }
-      else if ((weekNumber === 3 || weekNumber === 4) && isTwoWeekView === 'false') {
-        args.viewStart = startOfWeek(args.viewDate);
-        args.viewEnd = addDays(args.viewStart, 13);
-      }
-      else if(isTwoWeekView === 'true'){
-        args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-        args.viewEnd = addDays(args.viewStart, 27);
-      }
-      //#endregion
-      mnthView = getMonthView(this.dateAdapter, args);
-      // alert(this.toggleWeeks);
-    }
-    else{
-      args.viewStart = startOfWeek(startOfMonth(args.viewDate));
-      args.viewEnd = isTwoWeekView === 'false' ? args.viewEnd = addDays(args.viewStart, 13) : addDays(args.viewStart, 27);
-      mnthView = getMonthView(this.dateAdapter, args);
-    }
-    return mnthView;
-  }
+    //   //#region logic for view start
+    //   if((weekNumber === 1 || weekNumber === 2) && isTwoWeekView === 'false'){
+    //     args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+    //     args.viewEnd = addDays(args.viewStart, 13);
+    //   }
+    //   else if ((weekNumber === 3 || weekNumber === 4) && isTwoWeekView === 'false') {
+    //     args.viewStart = startOfWeek(args.viewDate);
+    //     args.viewEnd = addDays(args.viewStart, 13);
+    //   }
+    //   else if(isTwoWeekView === 'true'){
+    //     args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+    //     args.viewEnd = addDays(args.viewStart, 27);
+    //   }
+    //   //#endregion
+    //   mnthView = getMonthView(this.dateAdapter, args);
+    //   // alert(this.toggleWeeks);
+    // }
+    // else{
+    //   args.viewStart = startOfWeek(startOfMonth(args.viewDate));
+    //   args.viewEnd = isTwoWeekView === 'false' ? args.viewEnd = addDays(args.viewStart, 13) : addDays(args.viewStart, 27);
+    //   mnthView = getMonthView(this.dateAdapter, args);
+    // }
+
+    
+      args.viewStart = this.scheuleService.startDate;   
+      args.viewEnd = this.scheuleService.endDate;
+
+      let mnthView = getMonthView(this.dateAdapter, args);
+
+     return mnthView;
+   }
 
   // override getMonthView(args: GetMonthViewArgs): MonthView {
   //   let payPeriod: SchedulePayPeriod = new SchedulePayPeriod();
@@ -405,13 +419,23 @@ export class ScheduleCalendarComponent extends CalendarUtils implements OnInit {
     });
   }
 
+  
+
   GetScheduleData() {
-    this.http.get(`http://localhost:3000/scheduledata`).subscribe({
-      next: response => {
-        this.scheduleInfo = response;
-        console.log(this.scheduleInfo);
+    this.scheuleService.getScheduleData().subscribe(
+      (response)=> {          
+        this.scheuleService.startDate = new Date(response.startDate);       
+        this.scheuleService.endDate = new Date(response.endDate);    
       }
-    });
+    );
+
+    
+    // this.http.get(`http://localhost:3000/scheduledata`).subscribe({
+    //   next: response => {
+    //     this.scheduleInfo = response;
+    //     console.log(this.scheduleInfo);
+    //   }
+    // });
   }
 
   GetViewModeValue(id: number) {
