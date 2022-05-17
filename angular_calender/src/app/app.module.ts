@@ -13,6 +13,8 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeEs from '@angular/common/locales/es';
 import { FormsModule } from '@angular/forms';
+import {ScheduleService} from './components/schedule-calendar/schedule-calendar.service';
+import { ScheduleDataService } from './services/schedule-data.service';
 
 registerLocaleData(localeFr);
 registerLocaleData(localeEs);
@@ -34,7 +36,7 @@ registerLocaleData(localeEs);
     }),
     FormsModule
   ],
-  providers: [],
+  providers: [ScheduleService, ScheduleDataService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

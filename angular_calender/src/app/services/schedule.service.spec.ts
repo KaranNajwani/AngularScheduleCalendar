@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { ScheduleService } from './schedule.service';
+import { ScheduleService } from './schedule-data.service';
 
 describe('ScheduleService', () => {
   let service: ScheduleService;
